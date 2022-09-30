@@ -1,5 +1,5 @@
 import sys
-#from passwordGen import generatePass
+from passwordGen import generatePass
 
 companyName = "Company Name"
 subtitle = "New User Welcome Sheet"
@@ -12,11 +12,11 @@ dName = lName+", "+fName
 uNameNum = '01'
 uName = lName[0:4]+fName[0:2] + uNameNum
 passExpire = 90
-password = "Default123!"
+#password = "Default123!"
 #Uncomment following line if you want to add the password as a third argument
 #password = sys.argv[3]
 #Uncomment following line, and Line 2, to turn on simple password generator.
-#password = generatePass()
+password = generatePass()
 
 itEmail = "ITeMailHere@"+companyDomain.lower()
 itNumber = "IT Phone number here"
@@ -33,7 +33,7 @@ passwordNeeds = "Ensure your new password has a combination of 1 Upper, 1 Lower,
 
 passwordExpires = "Please note: Passwords expire every {} days.".format(passExpire)
 
-passwordRequirements = "  You will be prompted to change your password the first time you log in. You will need to use {} characters and "+ passwordNeeds + "  " + passwordExpires.format(passwordLength)
+passwordRequirements = "\tYou will be prompted to change your password the first time you log in. You will need to use {} characters and ".format(passwordLength) + passwordNeeds + passwordExpires
 
 
 

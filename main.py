@@ -29,7 +29,7 @@ def GeneratePDF():
     pdf.set_font("Arial", size=12)
     pdf.write(5, txt=str(settings.passwordRequirements))
 
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
+    pdf.cell(200, 10, txt=" ", ln=1, align='C')
 
     pdf.set_font("Arial", 'b', size=12)
     pdf.write(5, txt="Email Address: ")
