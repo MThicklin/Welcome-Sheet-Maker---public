@@ -1,133 +1,68 @@
-import settings
-from fpdf import FPDF
+from pdfs import welcomePDF
+from passwordGen import generatePass
+import argparse
+
+default_password = "Pa55word"
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-n', '--name', action="extend", nargs="+", type=str, help ="Name of user.  Needs at least a first and last name. Middle names can be added.")
+parser.add_argument('-nn', '--uNameNum', default="01", type=str, help="Number added to the end of username.  Default: 01")
+parser.add_argument('-o', '--o365', default="none", type=str, help="Adds a Office 365 password section to the welcome sheet.  'gen' generates a basic paassword.  'pass' copies the login password. Not required, removes the password section if not used.")
+parser.add_argument('-p','--passw', default=default_password, type=str, help="Log in password for user. Use 'gen'to generate a password. Use '-p <your password>' to add custom password")
+parser.add_argument('--phone', default=False, action='store_true', help="This section has been kept in as an example of how to expand this script with optional documents.  It is not required.")
+
+args = parser.parse_args()
 
 
-def GeneratePDF():
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", 'b', size=20)
-    pdf.cell(200,
-             5,
-             txt=settings.companyName + " New User Welcome Sheet",
-             ln=1,
-             align='C')
+class person:
+    def __init__(self, args):
+        if (len(args.name) > 2):
+            trueName = ""
+            for name in range(len(args.name[0:-1])):
+                trueName += " " + args.name[name].capitalize()
+            self.fName = trueName
+        else:
+            self.fName = args.name[0].capitalize()
+        self.lName = args.name[-1].capitalize()
+        self.uNameNum = args.uNameNum
+        self.uName = "Username: {}".format(self.lName +
+                                           str(self.fName) +
+                                           self.uNameNum)
+        self.dName = self.lName + ", " + self.fName
+        self.companyName = "Your Company Name here"
+        self.subTitle = "New User Welcome Sheet"
+        self.companyDomain = "{}.com".format(self.companyName.replace(" ", ""))
+        self.uEmail = self.fName + self.lName[
+            0] + "@" + self.companyDomain.lower()
+        self.webLink = "https://webmail." + self.companyDomain.lower()
+        self.owaLink = self.webLink + "/owa"
+        self.domainName = "ce"
+        self.office365P = "Office 365 Password: {}".format(args.o365)
+        self.itEmail = "helpdesk@" + self.companyDomain.lower()
+        self.itNumber = "IT phone number here"
+        self.supportInfo = "Please contact IT at by phone " + self.itNumber + " or Email " + self.itEmail
+        self.passExpire = "90"
+        self.passwordLength = "7"
+        if (args.passw == "gen"):
+            self.passw = "Password: " + generatePass()
+        else:
+            self.passw = "Password: " + str(args.passw)
 
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
+        if (args.o365 == "none"):
+            self.office365P = ""
+        if (args.o365 == "gen"):
+            self.office365P = "Office 365 Password: " + generatePass()
+        if (args.o365 == "pass"):
+            self.office365P = "Office 365 Password: {}".format(
+                self.passw[10::])
 
-    pdf.set_font("Arial", 'b', size=18)
-    pdf.cell(200, 8, txt="{}, {}".format(settings.lName, settings.fName), ln=1)
+        self.displayEmail = "Email Address: {}".format(self.uEmail)
+        self.webmailU = "Webmail Username - {}//{}".format(
+            self.domainName, self.uName)
+        self.webmailP = "Webmail Password - {}".format(self.passw)
+        self.phone = args.phone
+        #self.email = args.email
 
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
 
-    pdf.set_font("Arial", 'b', size=12)
-    pdf.cell(200, 5, txt="PC Login", ln=1)
-    pdf.cell(200, 5, txt="Username: {}".format(settings.uName), ln=1)
-    pdf.cell(200, 5, txt="Password: {}".format(settings.password), ln=1)
-
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-
-    pdf.set_font("Arial", size=12)
-    pdf.write(5, txt=str(settings.passwordRequirements))
-
-    pdf.cell(200, 10, txt=" ", ln=1, align='C')
-
-    pdf.set_font("Arial", 'b', size=12)
-    pdf.write(5, txt="Email Address: ")
-    pdf.set_font("Arial", size=12)
-    pdf.write(5, "{}".format(settings.uEmail))
-
-    pdf.cell(200, 10, txt=" ", ln=1, align='C')
-
-    pdf.set_font("Arial", 'b', size=12)
-    pdf.cell(200, 5, txt="MS365 Login:", ln=1) 
-    pdf.cell(200, 5, txt="(if Prompted in Office)", ln=1)
-    
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 5, txt="Username: {}".format(settings.uName), ln=1)
-    pdf.cell(200, 5, txt="Password: {}".format(settings.password), ln=1)
-    
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-
-    pdf.set_font("Arial", 'b', size=12)
-    pdf.write(5, "Webmail: ")
-    pdf.set_text_color(0, 0, 255)
-    pdf.set_font('', 'U')
-    pdf.write(5, "{}".format(settings.owaLink), link=str(settings.owaLink))
-
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Arial", 'b', size=12)
-
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-    pdf.cell(200, 5, txt="Email info for mobile devices:", ln=1)
-
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 5, txt="Account type: Exchange", ln=1)
-    pdf.cell(200,
-             5,
-             txt="Server name: {}".format(settings.link),
-             ln=1,
-             link='{}'.format(settings.owaLink))
-
-    pdf.cell(200, 5, txt="The connection will be secured using SSL.", ln=1)
-    pdf.cell(200,
-             5,
-             txt="Webmail Username- CE\{}".format(settings.uName),
-             ln=1)
-    pdf.cell(200,
-             5,
-             txt="Webmail Password- {}".format(settings.password),
-             ln=1)
-
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-
-    pdf.cell(
-        200,
-        5,
-        "If you have any issues or question, please feel free to contact {} IT"
-        .format(settings.companyName),
-        ln=1)
-    pdf.cell(200,
-             5,
-             "by phone: {} or email: {}".format(settings.itNumber,
-                                                settings.itEmail),
-             ln=1)
-
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-
-    pdf.set_font("Arial", 'b', size=12)
-    pdf.cell(200, 5, txt=str(settings.phoneStep0), ln=1)
-
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-
-    pdf.cell(200, 5, txt=str(settings.phoneStep1), ln=1)
-    pdf.image("img/image1.jpg", x=None, y=None, w=90, h=90, type="jpg")
-    pdf.cell(200, 5, txt="", ln=1)
-
-    pdf.cell(200, 5, txt=str(settings.phoneStep2), ln=1)
-    pdf.image("img/image2.jpg", x=None, y=None, w=100, h=100, type="jpg")
-    pdf.cell(200, 5, txt=" ", ln=1, align='C')
-
-    pdf.cell(200, 10, txt=str(settings.phoneStep3), ln=1)
-    pdf.image("img/image3.png", x=None, y=None, w=100, h=100, type="png")
-
-    pdf.cell(200, 45, txt="", ln=1)
-
-    pdf.cell(200, 5, txt=str(settings.phoneStep4), ln=1)
-    pdf.image("img/image4.jpg", x=None, y=None, w=100, h=100, type="jpg")
-    pdf.cell(200, 10, txt=" ", ln=1, align='C')
-
-    pdf.cell(200, 5, txt=str(settings.phoneStep5), ln=1)
-    pdf.cell(200, 5, txt=str(settings.phoneStep51), ln=1)
-    pdf.cell(200, 5, txt=str(settings.phoneStep52), ln=1)
-    pdf.cell(200, 5, txt=str(settings.phoneStep53), ln=1)
-    pdf.cell(200, 5, txt=str(settings.phoneStep54), ln=1)
-    pdf.cell(200, 5, txt=str(settings.phoneStep55), ln=1)
-    pdf.image("img/image5.jpg", x=None, y=None, w=100, h=100, type="jpg")
-
-    pdf.write(5, str(settings.phoneStep6))
-
-    pdf.output("{}, {}.pdf".format(settings.lName,
-                                   settings.fName.capitalize()))
-
-GeneratePDF()
+newUser = person(args)
+welcomePDF(newUser)
